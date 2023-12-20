@@ -5,7 +5,6 @@
 #include <iomanip>
 #include <cctype>
 using namespace std;
-const int MAX_STUDENTS = 30;
 
 
 
@@ -18,8 +17,8 @@ struct discipline // Инициализация на помощна структ
 
 struct student_info { // инициализация на главна структура
 	bool active;
-	long long int faculty_number;
-	long long personal_id_number;
+	string faculty_number;
+	string personal_id_number;
 	string full_name;
 	string gender;
 	int age;
@@ -72,14 +71,17 @@ int input(student_info studentInfo[30]) // функция за въвеждан�
 	cout << "Enter number of students you would like to add \n";
 	cin >> number_of_students;
 	while (number_of_students > 30 || number_of_students < 1) {
-		cout << "Error: Number of students either over 30 or lesser than 1";
+		cout << "Error: Number of students either over 30 or less than 1";
+		cout << "Enter valid number of student" << endl;
 		cin >> number_of_students;
 	}
 
 	int current_number_of_students = return_num_students(studentInfo);
 	cout << "The current number of students is - " << current_number_of_students << endl;
-	if (current_number_of_students < 30) {
-		for (int i = 0; i < number_of_students; i++) {
+
+	if (current_number_of_students + number_of_students < 30) {
+		for (int i = 0; i < number_of_students; i++)
+		{
 			int student_number = current_number_of_students;
 			studentInfo[student_number].active = true;
 			cout << "Enter faculty number\n";
@@ -118,17 +120,15 @@ int input(student_info studentInfo[30]) // функция за въвеждан�
 				cin >> studentInfo[student_number].status_of_student;
 				studentInfo[student_number].status_of_student = convertToLowerCase(studentInfo[student_number].status_of_student);
 			}
-		
 		}
-
 	}
 	else {
-		cout << "Cannot add more students. 30 students is the maximum" << endl; // ако се опитам да добавим студенти над размера на масива не позволява въвеждане
+		cout << "Cannot add that many students to database as it exceeds the limit of 30" << endl;
 	}
-
 	return 0;
 }
 
+	
 
 int output(student_info studentInfo[30]) // функция която извежда досега въведените студенти
 
@@ -197,7 +197,7 @@ int search_in_range_or_look_for_fail(student_info student[30]) // функция
 		for (int z = 0; z < return_num_students(student);z++){
 			for(int x = 0; x < 5; x++){
 				if (student[z].disciplines[x].grade == 2) {
-					cout << student[z].full_name;
+					cout << student[z].full_name << endl;
 					flag = true;
 					break;
 
@@ -254,7 +254,7 @@ int sort_by_firstname(student_info student[30]) // сортиране на
 }
 int write_to_file(student_info student[30]) {
 	ofstream ofs;
-	ofs.open("file_with_info.txt", ios::app);
+	ofs.open("test.txt", ios::app);
 	if (ofs.is_open())
 	{
 		
@@ -285,14 +285,12 @@ int read_array_from_file(student_info student[30]) {
 	ifstream ifs("file_with_info.txt");
 	int i = 0;
 	int current_number_of_stud = return_num_students(student);
-	i += current_number_of_stud;
-	ifs.clear();
+	cout << "Current number of students: " << current_number_of_stud << endl;
+
 	if (ifs.is_open()) {
-		while (i  < 30 && ifs >> student[i].faculty_number) {
+		while (i < 30 && ifs >> student[i].faculty_number) {
 			ifs >> student[i].personal_id_number;
-			/*ifs >> student[i].full_name;*/
-			ifs.ignore();
-			getline(ifs, student[i].full_name);
+			getline(ifs >> ws, student[i].full_name);
 
 			for (int z = 0; z < 5; z++) {
 				ifs >> student[i].disciplines[z].grade;
@@ -319,165 +317,221 @@ int read_array_from_file(student_info student[30]) {
 
 
 
+
 int seperate_students_by_status(student_info student[30]) {
 	string status_warranted;
 	int count = 0;
-	cout << "Enter status you would like to filter by\n";
-	cout << "Valid statuses are active,dropout and graduated" << endl;
-	cin >> status_warranted;
-	while (status_warranted != "active" && status_warranted != "dropout" && status_warranted != "graduated") {
-		cout << "Error: Invalid status. Status must be active, dropout or graduated" << endl;
+	bool flag = false;
+	bool flag2 = false;
+	if (return_num_students(student) > 0) {
+		flag2 = true;
+		cout << "Enter status you would like to filter by\n";
+		cout << "Valid statuses are active,dropout and graduated" << endl;
 		cin >> status_warranted;
-	}
-	status_warranted = convertToLowerCase(status_warranted);
-	int filtered_pid[30];
-
-	for (int i = 0; i < return_num_students(student); i++) {
-		if (student[i].status_of_student == status_warranted) {
-			filtered_pid[count] = i;
-			count++;
+		while (status_warranted != "active" && status_warranted != "dropout" && status_warranted != "graduated") {
+			cout << "Error: Invalid status. Status must be active, dropout or graduated" << endl;
+			cin >> status_warranted;
 		}
+		status_warranted = convertToLowerCase(status_warranted);
+		int filtered_pid[30];
 
-	}
-	for (int i = 0; i < count - 1;i++) {
-		for (int j = 0; j < count - i - 1;j++) {
-			if (filtered_pid[j] > filtered_pid[j + 1]) {
-				int temp = filtered_pid[j];
-				filtered_pid[j] = filtered_pid[j + 1];
-				filtered_pid[j + 1] = temp;
+		for (int i = 0; i < return_num_students(student); i++) {
+			if (student[i].status_of_student == status_warranted) {
+				filtered_pid[count] = i;
+				count++;
+				flag = true;
+			}
+
+		}
+		for (int i = 0; i < count - 1;i++) {
+			for (int j = 0; j < count - i - 1;j++) {
+				if (filtered_pid[j] > filtered_pid[j + 1]) {
+					int temp = filtered_pid[j];
+					filtered_pid[j] = filtered_pid[j + 1];
+					filtered_pid[j + 1] = temp;
+				}
 			}
 		}
+		if(flag){
+			cout << "Faculty numbers of - " << status_warranted << " students" << endl;
+			for (int i = 0; i < count; i++) {
+				cout << student[filtered_pid[i]].faculty_number << endl;
+			}
+		}
+		
 	}
-	cout << "Faculty numbers of - " << status_warranted << " students" << endl;
-	for (int i = 0; i < count; i++) {
-		cout << student[filtered_pid[i]].faculty_number << endl;
+	if (!flag) {
+		cout << "No student with such status" << endl;
+	}
+	if(!flag2) {
+		cout << "No students in information database" << endl;
 	}
 	return 0;
 }
 int separate_students_by_grades(student_info student[30]) {
 	float min;
 	float max;
-	cout << "Enter min for average of grades: ";
-	cin >> min;
-	cout << "Enter max for average of grades: ";
-	cin >> max;
+	if (return_num_students(student) > 0) {
+		cout << "Enter min for average of grades: ";
+		cin >> min;
+		cout << "Enter max for average of grades: ";
+		cin >> max;
 
-	int n = return_num_students(student);
-	int filter_indices[30];
-	int count = 0;
-	calculate_average_grade(student);
+		int n = return_num_students(student);
+		int filter_indices[30];
+		int count = 0;
+		calculate_average_grade(student);
 
-	for (int i = 0; i < n; i++) {
-		// Inside the loop
-		/*std::cout << "min: " << min << ", max: " << max << ", sreden_uspeh: " << student[i].sreden_uspeh << std::endl;*/
+		for (int i = 0; i < n; i++) {
+			// Inside the loop
+			/*std::cout << "min: " << min << ", max: " << max << ", sreden_uspeh: " << student[i].sreden_uspeh << std::endl;*/
 
-		if (min <= student[i].sreden_uspeh && student[i].sreden_uspeh <= max) {
-			filter_indices[count] = i; // Store the index of the student
+			if (min <= student[i].sreden_uspeh && student[i].sreden_uspeh <= max) {
+				filter_indices[count] = i; // Store the index of the student
 
-			count++;
-		}
-	}
-
-	// Sorting the filter_indices array
-	for (int i = 0; i < count - 1; i++) {
-		for (int j = 0; j < count - i - 1; j++) {
-			// If the element found is greater than the next element, swap them
-			if (filter_indices[j] > filter_indices[j + 1]) {
-				// Swap filter_indices[j] and filter_indices[j+1]
-				int temp = filter_indices[j];
-				filter_indices[j] = filter_indices[j + 1];
-				filter_indices[j + 1] = temp;
+				count++;
 			}
 		}
+
+		// Sorting the filter_indices array
+		for (int i = 0; i < count - 1; i++) {
+			for (int j = 0; j < count - i - 1; j++) {
+				// If the element found is greater than the next element, swap them
+				if (filter_indices[j] > filter_indices[j + 1]) {
+					// Swap filter_indices[j] and filter_indices[j+1]
+					int temp = filter_indices[j];
+					filter_indices[j] = filter_indices[j + 1];
+					filter_indices[j + 1] = temp;
+				}
+			}
+		}
+		cout << "Personal ID numbers" << endl;
+		for (int i = 0; i < count; i++) {
+			cout << "Average grades of student -  " << student[filter_indices[i]].sreden_uspeh << endl;
+			cout << "Personal Id number of student - " << student[filter_indices[i]].personal_id_number << endl;
+		}
 	}
-	cout << "Personal ID numbers" << endl;
-	for (int i = 0; i < count; i++) {
-		cout << "Average grades of student -  " << student[filter_indices[i]].sreden_uspeh << endl;
-		cout << "Personal Id number of student - " << student[filter_indices[i]].personal_id_number << endl;
+	else {
+		cout << "No students in information database" << endl;
 	}
+	
 	return 0;
 }
 int change_data(student_info student[30]) {
 	bool flag = false;
-	int temp_faculty_number;
-	string answer = " ";
-	cout << "Enter faculty number of the student that you would like to update the information for" << endl;
-	cin >> temp_faculty_number;
-	for (int i = 0; i < return_num_students(student); i++) {
-		if (temp_faculty_number == student[i].faculty_number) {
-			flag = true;
-			if (student[i].status_of_student == "active") {
-				for (int z = 0; z < 5;z++) {
-					if (student[i].disciplines[z].grade != 0) {
-						cout << "Would you like to change the grade for - " << student[i].disciplines[z].name << " ? Enter Yes or no" << endl;
-						cin >> answer;
-						answer = convertToLowerCase(answer);
-						while (answer != "yes" && answer != "no") {
-							cout << "Enter valid answer - yes or no" << endl;
-							cout << "Enter answer" << endl;
+	string temp_faculty_number;
+	string answer = "";
+	if (return_num_students(student) > 0) {
+		cout << "Enter faculty number of the student that you would like to update the information for" << endl;
+		cin >> temp_faculty_number;
+		for (int i = 0; i < return_num_students(student); i++) {
+			if (temp_faculty_number == student[i].faculty_number) {
+				flag = true;
+				if (student[i].status_of_student == "active") {
+					for (int z = 0; z < 5;z++) {
+						if (student[i].disciplines[z].grade != 0) {
+							cout << "Would you like to change the grade for - " << student[i].disciplines[z].name << " ? Enter Yes or no" << endl;
 							cin >> answer;
+							answer = convertToLowerCase(answer);
+							while (answer != "yes" && answer != "no") {
+								cout << "Enter valid answer - yes or no" << endl;
+								cout << "Enter answer" << endl;
+								cin >> answer;
+							}
+							answer = convertToLowerCase(answer);
+							if (answer == "yes") {
+								cout << "Enter grade for - " << student[i].disciplines[z].name << endl;
+								cin >> student[i].disciplines[z].grade;
+								calculate_average_grade(student);
+							}
+							else {
+								continue;
+							}
 						}
-						answer = convertToLowerCase(answer);
-						if (answer == "yes") {
-							cout << "Enter grade for - " << student[i].disciplines[z].name << endl;
+						else if (student[i].disciplines[z].grade == 0) {
+							cout << "Enter grade for - " << student[i].disciplines[z].name;
 							cin >> student[i].disciplines[z].grade;
-						}
-						else {
-							continue;
+							calculate_average_grade(student);
 						}
 					}
-					else if (student[i].disciplines[z].grade == 0) {
-						cout << "Enter grade for - " << student[i].disciplines[z].name;
-						cin >> student[i].disciplines[z].grade;
-					}
+
 				}
-
-
-
-			}
-			else if (student[i].status_of_student == "graduated" || student[i].status_of_student == "dropout") {
-				cout << "Cannot update grades for this student";
+				else if (student[i].status_of_student == "graduated" || student[i].status_of_student == "dropout") {
+					cout << "Cannot update grades for this student";
+				}
 			}
 		}
-		if(!flag){
+		if (!flag) {
 			cout << "Student not in the information database";
 		}
+	}
+	else {
+		cout << "No students in information database" << endl;
 	}
 	return 0;
 }
 
-void change_status_of_student(student_info student[30]) {
-	int entered_faculty = 0;
+int change_status_of_student(student_info student[30]) {
+	string entered_faculty = "";
 	bool flag = false;
-	cout << "Enter faculty number of student you would like to make changes for" << endl;
-	cin >> entered_faculty;
-	for (int i = 0; i < return_num_students(student);i++) {
-		if (student[i].faculty_number == entered_faculty) {
-			if (student[i].status_of_student == "active" || student[i].status_of_student == "dropout")
-			{
+	if (return_num_students(student) > 0) {
+		cout << "Enter faculty number of student you would like to make changes for" << endl;
+		cin >> entered_faculty;
+
+		for (int i = 0; i < return_num_students(student);i++) {
+			if (student[i].faculty_number == entered_faculty) {
 				flag = true;
-				cout << "Enter new status of student" << endl;
-				cin >> student[i].status_of_student;
-				student[i].status_of_student = convertToLowerCase(student[i].status_of_student);
-			}
-			else if (student[i].status_of_student == "graduated")
-			{
-				cout << "Cannot change status for graduated students" << endl;
-			}
-			else {
-				cout << "Invalid status of student" << endl;
-				cout << "Status must either be active, dropout or graduated" << endl;
+				if (student[i].status_of_student == "active" || student[i].status_of_student == "dropout")
+				{
+
+					cout << "Enter new status of student" << endl;
+					cin >> student[i].status_of_student;
+					student[i].status_of_student = convertToLowerCase(student[i].status_of_student);
+				}
+				else if (student[i].status_of_student == "graduated")
+				{
+					cout << "Cannot change status for graduated students" << endl;
+				}
+				else {
+					cout << "Invalid status of student" << endl;
+					cout << "Status must either be active, dropout or graduated" << endl;
+				}
+
 			}
 
 		}
-		
+		if (!flag) {
+			cout << "Enter faculty number not in information database" << endl;
+		}
+	} else {
+		cout << "No students in information database" << endl;
 	}
-	if (!flag) {
-		cout << "Enter faculty number not in information database" << endl;
+
+	
+	return 0;
+}
+int menu_for_function_seperate_students_by_grades_or_status(student_info student[30]) {
+	int choice;
+	cout << "Enter 1 to seperate students by status" << endl;
+	cout << "Enter 2 to seperate students by grades" << endl;
+	cin >> choice;
+	while (choice != 1 && choice != 2) {
+		cout << "Error: Invalid option chosen. Enter 1 or 2" << endl;
+		cin >> choice;
 	}
+	switch (choice) {
+	case 1:
+		seperate_students_by_status(student);
+		break;
+	case 2:
+		separate_students_by_grades(student);
+		break;
+	}
+	return 0;
 }
 int menu(student_info student[30]) {
 	{
+		
 		int option;
 		student_info student[30];
 		cout << "Welcome to the Information system - Students - TU Varna" << endl;
@@ -505,6 +559,7 @@ int menu(student_info student[30]) {
 			switch (option) {
 			case 1:
 				input(student);
+				calculate_average_grade(student);
 				break;
 
 			case 2:
@@ -521,23 +576,10 @@ int menu(student_info student[30]) {
 				break;
 			case 6:
 				read_array_from_file(student);
+				calculate_average_grade(student);
 				break;
 			case 7:
-				int choice;
-				cout << "Enter 1 to seperate students by status" << endl;
-				cout << "Enter 2 to seperate students by grades" << endl;
-				cin >> choice;
-				while (choice != 1 && choice != 2) {
-					cout << "Error: Wrong option chosen. Enter 1 or 2" << endl;
-				}
-				switch (choice) {
-				case 1:
-					seperate_students_by_status(student);
-					break;
-				case 2:
-					separate_students_by_grades(student);
-					break;
-				}
+				menu_for_function_seperate_students_by_grades_or_status(student);
 				break;
 			case 8:
 				change_data(student);
@@ -551,13 +593,26 @@ int menu(student_info student[30]) {
 		} while (option < 10 && option != 0);
 		
 	}
+	write_to_file(student);
 	return 0;
 
 }
 
 int main() {
 	student_info student[30];
+	int number_of_students = 0;
+
+	// Read student information from the file
+	number_of_students = read_array_from_file(student);
+	calculate_average_grade(student);
+
+	// Run the menu for user interaction
 	menu(student);
 
+	// Save the changes back to the file before exiting
+	write_to_file(student);
+
+	return 0;
 }
+
 
